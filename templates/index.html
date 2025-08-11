@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>五角场餐厅抽签</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize/modern-normalize.min.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="hero-grid">
+      <h1 class="gradient-text hero-title">好搭科技工作餐</h1>
+      <p class="subtitle hero-subtitle">先按类别权重抽取，再在对应餐厅中随机选择一家</p>
+      <p class="subtitle-2 hero-tagline">这是我每天最开心的事</p>
+      <form method="post" action="/reset" class="reset-form-inline hero-reset">
+        <button type="submit" class="btn-reset">重置为 7：2：1</button>
+      </form>
+      <img class="logo-small hero-logo" src="/static/image/logo.png" alt="好搭科技" onerror="this.style.display='none'" />
+    </div>
+
+    {% if error_message %}
+      <div class="alert">{{ error_message }}</div>
+    {% endif %}
+    {% if success_message %}
+      <div class="success">{{ success_message }}</div>
+    {% endif %}
+
+    <form method="post" action="/" class="weights-form">
+      <div class="weights fancy-grid">
+        {% for c in categories %}
+          <div class="weight-item card-glow">
+            <label for="weight_{{ c.key }}">{{ c.display_name }}</label>
+            <input id="weight_{{ c.key }}" name="weight_{{ c.key }}" type="number" min="0" step="1" value="{{ weights[c.key] }}" />
+            <div class="meta">可选门店：{{ counts[c.key] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary btn-shine">抽 一 抽</button>
+      </div>
+    </form>
+
+
+    {% if chosen_category and chosen_item %}
+      <div class="result card-glow glow-pulse">
+        <div class="badge">{{ chosen_category.display_name }}</div>
+        <h2 class="shop-name">{{ chosen_item.name }}</h2>
+        <div class="shop-info">
+          <div class="price">人均：{{ chosen_item.avg_price }}</div>
+          {% if chosen_item.recommended_dishes %}
+            <div class="dishes">推荐：{{ chosen_item.recommended_dishes }}</div>
+          {% endif %}
+        </div>
+        <div class="nav-actions">
+          <a class="btn-nav" target="_blank" href="https://uri.amap.com/search?keyword={{ chosen_item.name|urlencode }}&city=上海&src=hd_work_lunch&callnative=1">高德地图导航</a>
+        </div>
+        <form method="post" action="/confirm" class="confirm-form">
+          <input type="hidden" name="category_key" value="{{ chosen_category.key }}" />
+          <input type="hidden" name="name" value="{{ chosen_item.name }}" />
+          <input type="hidden" name="avg_price" value="{{ chosen_item.avg_price }}" />
+          <input type="hidden" name="recommended_dishes" value="{{ chosen_item.recommended_dishes }}" />
+          <button type="submit" class="btn-confirm">确认所去餐厅</button>
+        </form>
+        <form method="post" action="/remove" class="remove-form" onsubmit="return confirm('确定永久删除该餐厅？此操作不可恢复');">
+          <input type="hidden" name="category_key" value="{{ chosen_category.key }}" />
+          <input type="hidden" name="name" value="{{ chosen_item.name }}" />
+          <input type="hidden" name="avg_price" value="{{ chosen_item.avg_price }}" />
+          <input type="hidden" name="recommended_dishes" value="{{ chosen_item.recommended_dishes }}" />
+          <button type="submit" class="btn-remove">永久删除该餐厅</button>
+        </form>
+      </div>
+    {% endif %}
+
+  </div>
+</body>
+</html>
+
+
